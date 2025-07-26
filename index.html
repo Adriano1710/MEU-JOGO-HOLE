@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Buraco.io - Comer a Cidade</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+    #ui {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      background: rgba(0,0,0,0.5);
+      padding: 10px;
+      border-radius: 10px;
+    }
+    #popup {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      color: black;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      z-index: 10;
+    }
+    #popup button {
+      margin-top: 10px;
+      padding: 10px;
+    }
+    canvas {
+      background-color: #87CEEB;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+<div id="ui">
+  Jogadas restantes: <span id="moves">10</span>
+</div>
+
+<div id="popup">
+  <h2>Suas jogadas acabaram!</h2>
+  <p>Adicione créditos para continuar jogando.</p>
+  <p>PIX: <strong>Adriano Cassimiro - 31999993208</strong></p>
+  <button onclick="location.reload()">Recarregar Página</button>
+</div>
+
+<canvas id="game" width="800" height="600"></canvas>
+
+<script>
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+
+  let hole = { x: 100, y: 100, size: 40 };
+  let buildings = [];
+  let moves = 10;
+
+  function randomBuilding() {
+    return {
+      x: Math.random() * 760,
+      y: Math.random() * 560,
+      size: 40
+    };
+  }
+
+  for (let i = 0; i < 20; i++) {
+    buildings.push(randomBuilding());
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (moves <= 0) return;
+    switch (e.key) {
+      case 'ArrowUp':    hole.y -= 10; break;
+      case 'ArrowDown':  hole.y += 10; break;
+      case 'ArrowLeft':  hole.x -= 10; break;
+      case 'ArrowRight': hole.x += 10; break;
+    }
+    moves--;
+    document.getElementById('moves').textContent = moves;
+    if (moves <= 0) {
+      document.getElementById('popup').style.display = 'block';
+    }
+  });
+
+  function checkCollision(h, b) {
+    return h.x < b.x + b.size && h.x + h.size > b.x &&
+           h.y < b.y + b.size && h.y + h.size > b.y;
+  }
+
+  function update() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // desenha buraco
+    ctx.beginPath();
+    ctx.arc(hole.x + hole.size/2, hole.y + hole.size/2, hole.size, 0, 2 * Math.PI);
+    ctx.fillStyle = 'black';
+    ctx.fill();
+
+    // desenha e remove edifícios colididos
+    buildings = buildings.filter(b => {
+      if (checkCollision(hole, b)) {
+        hole.size += 2;
+        return false;
+      } else {
+        ctx.fillStyle = 'gray';
+        ctx.fillRect(b.x, b.y, b.size, b.size);
+        return true;
+      }
+    });
+
+    requestAnimationFrame(update);
+  }
+
+  update();
+</script>
+
+</body>
+</html>
